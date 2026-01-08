@@ -1,0 +1,13 @@
+Parameter: diagnostic_interval not found in parameter file. It has been set to its default value = 10.
+Parameter: max_iterations not found in parameter file. It has been set to its default value = 100.
+Parameter: numMGIterations not found in parameter file. It has been set to its default value = 4.
+Parameter: numMGsmooth not found in parameter file. It has been set to its default value = 4.
+Parameter: preCondSolverDepth not found in parameter file. It has been set to its default value = -1.
+Parameter: alpha not found in parameter file. It has been set to its default value = 1.
+Parameter: beta not found in parameter file. It has been set to its default value = -1.
+Num levels read out is 1
+Parameter: refine_threshold not found in parameter file. It has been set to its default value = 0.5.
+Parameter: fill_ratio not found in parameter file. It has been set to its default value = 0.75.
+Parameter: buffer_size not found in parameter file. It has been set to its default value = 0.
+Parameter: extrapolation_order not found in parameter file. It has been set to its default value = 1.
+grid center set to 64 64 64
