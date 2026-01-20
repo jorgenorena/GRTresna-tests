@@ -5,3 +5,5 @@ p
 f
 *.ex
 *hdf5
+**/pout/**
+**/Ham_and_Mom_errors*
