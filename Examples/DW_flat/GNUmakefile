@@ -15,7 +15,7 @@ cxxcppflags = -DUSE_CTTK
 # cxxcppflags = -DUSE_CTTKHybrid
 
 # the base name(s) of the application(s) in this directory
-ebase = Main_ScalarFieldCosmo
+ebase = Main_DW_flat
 
 # names of Chombo libraries needed by this program, in order of search.
 LibNames = AMRElliptic AMRTools BoxTools
