@@ -13,7 +13,8 @@ Real ScalarField::my_potential_function(const Real &phi_here) const
      * V(\phi) = \frac{\lambda}{4}\left(\phi^2 - v^2\right)^2\,,
      * $$
     */
-    Real phi2_minus_v2 = (phi_here*phi_here - m_matter_params.v*m_matter_params.v)
+    Real phi2_minus_v2 = (phi_here*phi_here - m_matter_params.v*m_matter_params.v);
+
     return 0.25*m_matter_params.lambda
         * phi2_minus_v2*phi2_minus_v2;
 }
