@@ -14,20 +14,16 @@ namespace MatterParams
 
 struct params_t
 {
-    Real phi_0;
-    Real dphi;
-    Real pi_0;
-    Real dpi;
-    Real scalar_mass;
+    Real v;
+    Real lambda;
+    Real R_o;
 };
 
 inline void read_params(GRParmParse &pp, params_t &matter_params)
 {
-    pp.get("phi_0", matter_params.phi_0);
-    pp.get("dphi", matter_params.dphi);
-    pp.get("pi_0", matter_params.pi_0);
-    pp.get("dpi", matter_params.dpi);
-    pp.get("scalar_mass", matter_params.scalar_mass);
+    pp.get("v", matter_params.v);
+    pp.get("lambda", matter_params.lambda);
+    pp.get("R_o", matter_params.R_o);
 }
 
 }; // namespace MatterParams
