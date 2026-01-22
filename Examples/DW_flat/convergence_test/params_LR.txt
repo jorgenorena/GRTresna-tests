@@ -100,7 +100,7 @@ regularised_part_psi = 1.0
 
 # Trace of extrinsic curvature K
 # Positive K=1 for collapsing, negative K=-1 expanding
-sign_of_K = -1
+sign_of_K = 1
 
 #################################################
 # Bowen York binary BH spacetimes
