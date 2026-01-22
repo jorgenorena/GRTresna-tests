@@ -47,4 +47,26 @@ def print_hdf5_structure(file_name):
     return
 
 print_hdf5_structure(file_name)
+
+
+fields = []
+
+with h5py.File(file_name, 'r') as f:
+    for key, value in f.attrs.items():
+        fields.append(value)
+```
+
+```{python}
+def plot_field(field_name):
+    ds = yt.load(file_name)
+
+    dd = ds.r[::64j,::64j,::64j]
+    phi = dd[field_name]
+
+    plt.imshow(phi[:, :, 0])#, vmin=phi.min(), vmax=phi.max(), cmap='viridis')
+    plt.title(field_name)
+    plt.colorbar()
+
+for field in fields:
+    plot_field(field_name)
 ```
