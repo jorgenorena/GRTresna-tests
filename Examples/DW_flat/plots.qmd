@@ -68,5 +68,5 @@ def plot_field(field_name):
     plt.colorbar()
 
 for field in fields:
-    plot_field(field_name)
+    plot_field(field)
 ```
