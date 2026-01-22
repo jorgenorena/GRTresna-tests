@@ -71,6 +71,7 @@ def plot_field(field_name):
     plt.imshow(phi[:, :, 0])#, vmin=phi.min(), vmax=phi.max(), cmap='viridis')
     plt.title(field_name)
     plt.colorbar()
+    plt.show()
 
 for field in fields:
     plot_field(field)
