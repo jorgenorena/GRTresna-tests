@@ -1,0 +1,14 @@
+
+```{python}
+import yt 
+import matplotlib.pyplot as plt
+
+file_name = 'Outputs_LR/InitialDataFinal.3d.hdf5'      # path to the checkpoint/plot file.
+ds = yt.load(file_name)
+
+dd = ds.r[::64j,::64j,::64j]
+phi = dd['phi']
+
+plt.imshow(phi[:, :, 0])#, vmin=phi.min(), vmax=phi.max(), cmap='viridis')
+plt.colorbar()
+```
