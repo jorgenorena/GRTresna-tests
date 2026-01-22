@@ -53,7 +53,9 @@ fields = []
 
 with h5py.File(file_name, 'r') as f:
     for key, value in f.attrs.items():
-        fields.append(str(value, 'utf-8'))
+        name = str(value, 'utf-8')
+        if name.find('component'):
+            fields.append(name)
 ```
 
 ```{python}
