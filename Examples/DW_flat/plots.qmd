@@ -12,3 +12,37 @@ phi = dd['phi']
 plt.imshow(phi[:, :, 0])#, vmin=phi.min(), vmax=phi.max(), cmap='viridis')
 plt.colorbar()
 ```
+
+```{python}
+# ————————————————————————————————————————
+# Function to read and print HDF5 file structure
+# ————————————————————————————————————————
+def print_hdf5_structure(file_name):
+    with h5py.File(file_name, 'r') as f:
+        def visitor(name, obj):
+            if isinstance(obj, h5py.Group):
+                print(f"\nGroup: {name or '/'}")
+                for k, v in obj.attrs.items():
+                    print(f"  Attr - {k}: {v}")
+
+            elif isinstance(obj, h5py.Dataset):
+                print(f"\nDataset: {name}")
+                print(f"  Shape: {obj.shape}")
+                print(f"  Dtype: {obj.dtype}")
+                if obj.dtype.names:  # compound datatype
+                    print(f"  Compound fields: {obj.dtype.names}")
+                    # Print first few entries
+                    sample = obj[:5]
+                    print("  First 5 entries:", sample)
+
+        f.visititems(visitor)
+
+        with h5py.File(file_name, 'r') as f:
+            # Print the root group attributes
+            print("\nRoot Group Attributes:")
+            for key, value in f.attrs.items():
+                print(f"  {key}: {value}")
+    return
+
+print_hdf5_structure(file_name)
+```
