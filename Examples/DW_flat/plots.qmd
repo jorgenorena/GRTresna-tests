@@ -15,6 +15,7 @@ plt.colorbar()
 
 ```{python}
 import h5py
+import re
 
 # ————————————————————————————————————————
 # Function to read and print HDF5 file structure
@@ -54,7 +55,7 @@ fields = []
 with h5py.File(file_name, 'r') as f:
     for key, value in f.attrs.items():
         name = str(value, 'utf-8')
-        if key.find('component') != -1:
+        if re.search(r"^component", key):
             fields.append(name)
             
 display(fields)
