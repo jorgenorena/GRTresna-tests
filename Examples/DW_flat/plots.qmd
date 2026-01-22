@@ -53,7 +53,7 @@ fields = []
 
 with h5py.File(file_name, 'r') as f:
     for key, value in f.attrs.items():
-        fields.append(string(value))
+        fields.append(str(value, 'utf-8'))
 ```
 
 ```{python}
