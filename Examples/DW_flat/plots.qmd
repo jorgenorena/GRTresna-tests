@@ -56,6 +56,8 @@ with h5py.File(file_name, 'r') as f:
         name = str(value, 'utf-8')
         if name.find('component'):
             fields.append(name)
+            
+display(fields)
 ```
 
 ```{python}
