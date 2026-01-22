@@ -91,7 +91,7 @@ G_Newton = 1.0
 # and used in MatterFunctions.hpp
 v = 1
 lambda = 0.05
-R_o = 5e-1
+R_o = 2.5e-1
 
 # Conformal factor psi
 # Related to cosmo scale factor a = psi^2
