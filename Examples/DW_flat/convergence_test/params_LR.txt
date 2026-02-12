@@ -36,12 +36,12 @@ N = 128 128 128
 L = 128
 
 # Maximum number of times you can regrid above coarsest level
-max_level = 0 # There are (max_level+1) grids, so min is zero
+max_level = 3 # There are (max_level+1) grids, so min is zero
 
 # Threshold for AMR refinement, based on magnitude of rhs
-# refine_threshold = 0.5
+refine_threshold = 0.05
 # Force regridding within some radius
-regrid_radius = 14
+# regrid_radius = 14
 # Set how aggressively to refine
 # fill_ratio   = 0.75
 # buffer_size  = 0
@@ -74,7 +74,7 @@ lo_boundary = 0 0 0
 
 # Optionally use extrapolation for the Vi variables. Note that in this 
 # case you should probably set the deactivate_zero_mode param to true
-Vi_extrapolated_at_boundary = 1
+# Vi_extrapolated_at_boundary = 1
 
 # This order is used to fill ghosts for K and Aij, usually linear
 # and for GRChombo vars where fewer ghosts than solver
@@ -91,7 +91,7 @@ G_Newton = 1.0
 # and used in MatterFunctions.hpp
 v = 1
 lambda = 0.05
-R_o = 2.5e-1
+R_o = 0.125
 
 # Conformal factor psi
 # Related to cosmo scale factor a = psi^2
