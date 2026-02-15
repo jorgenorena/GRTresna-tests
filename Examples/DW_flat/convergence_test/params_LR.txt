@@ -89,9 +89,9 @@ G_Newton = 1.0
 
 # Scalar field input params read in MatterParams.hpp
 # and used in MatterFunctions.hpp
-v = 64
-lambda = 0.05
-R_o = 0.125
+v = 0.05
+lambda = 64
+R_o = 2.5e-1
 
 # Conformal factor psi
 # Related to cosmo scale factor a = psi^2
