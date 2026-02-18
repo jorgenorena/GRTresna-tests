@@ -76,3 +76,116 @@ def plot_field(field_name):
 for field in fields:
     plot_field(field)
 ```
+
+```{python}
+# Grid/refinement visualization
+# Note: GRTresna outputs are typically a single uniform grid, so you may
+# only see one level here. For GRChombo AMR plotfiles, this shows refinement.
+
+import os
+from pathlib import Path
+import numpy as np
+
+ds = yt.load(file_name)
+print(f"num_grids={len(ds.index.grids)}, max_level={ds.max_level}")
+print(f"plot_cwd={os.getcwd()}")
+
+output_dir = Path("./plots_out")
+output_dir.mkdir(parents=True, exist_ok=True)
+
+levels = [g.Level for g in ds.index.grids]
+print("unique grid levels:", sorted(set(levels)))
+print("grid counts per level:", {lvl: levels.count(lvl) for lvl in sorted(set(levels))})
+print("grid dims sample:", ds.index.grids[0].ActiveDimensions)
+
+def _resolve_field(field_name):
+    if field_name in ds.field_list:
+        return field_name
+    for f in ds.field_list:
+        if isinstance(f, tuple) and len(f) > 1 and f[1] == field_name:
+            return f
+    return field_name
+
+def _slice_limits(field_name, n=128):
+    dd = ds.r[::n*1j, ::n*1j, ::n*1j]
+    field = _resolve_field(field_name)
+    arr = dd[field]
+    z_index = arr.shape[2] // 2
+    sl = arr[:, :, z_index]
+    return float(np.nanmin(sl)), float(np.nanmax(sl))
+
+def plot_grids(field_name="phi", n=128):
+    field = _resolve_field(field_name)
+    vmin, vmax = _slice_limits(field_name, n=n)
+    p = yt.SlicePlot(ds, "z", field)
+    p.set_zlim(field, vmin, vmax)
+    p.annotate_grids()
+    return p.save(str(output_dir / "grid_overlay"))
+
+def plot_grid_level():
+    field = ("index", "grid_level")
+    if field in ds.field_list:
+        p = yt.SlicePlot(ds, "z", field)
+        p.set_log(field, False)
+        return p.save(str(output_dir / "grid_level"))
+    else:
+        print("grid_level field not available for this dataset.")
+        return []
+
+# Example usage:
+saved_overlay = plot_grids("phi")
+saved_level = plot_grid_level()
+print("saved_overlay:", saved_overlay)
+print("saved_level:", saved_level)
+```
+
+```{python}
+# Check if "levels" are actually refined (compare grid spacings)
+from collections import defaultdict
+
+levels = defaultdict(list)
+for g in ds.index.grids:
+    levels[g.Level].append(g.dds)
+
+for lvl, dds_list in sorted(levels.items()):
+    uniq = {tuple(dds.v) for dds in dds_list}
+    print("level", lvl, "unique dds:", uniq)
+```
+
+```{python}
+# Plot all fields with grid overlays and fixed colorbar limits
+all_overlays = []
+for name in fields:
+    try:
+        field = _resolve_field(name)
+        vmin, vmax = _slice_limits(name, n=128)
+        p = yt.SlicePlot(ds, "z", field)
+        p.set_zlim(field, vmin, vmax)
+        p.annotate_grids()
+        saved = p.save(str(output_dir / f"grid_overlay_{name}"))
+        all_overlays.extend(saved)
+        print("saved overlay for", name, "->", saved)
+    except Exception as exc:
+        print("skip field", name, "error:", exc)
+
+```
+
+```{python}
+# Inline display of saved grid images
+from IPython.display import Image, display
+from pathlib import Path
+
+display_paths = []
+for path_list in (saved_overlay, saved_level):
+    if path_list:
+        display_paths.extend(path_list)
+
+if not display_paths:
+    display_paths = [str(p) for p in output_dir.glob("grid_*.*")]
+
+display_paths.extend(all_overlays)
+
+for path in display_paths:
+    if Path(path).exists():
+        display(Image(filename=str(path)))
+```
