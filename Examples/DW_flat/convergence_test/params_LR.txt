@@ -36,7 +36,7 @@ N = 64 64 64
 L = 128
 
 # Maximum number of times you can regrid above coarsest level
-max_level = 3 # There are (max_level+1) grids, so min is zero
+max_level = 0 # There are (max_level+1) grids, so min is zero
 
 # Threshold for AMR refinement, based on magnitude of rhs
 refine_threshold = 0.05
