@@ -33,7 +33,7 @@ error_filename = Ham_and_Mom_errors_LR
 # 'N' is the number of subdivisions in each direction of a cubic box
 # 'L' is the length of the longest side of the box, dx_coarsest = L/N
 N = 128 128 128
-L = 256
+L = 128
 
 # Maximum number of times you can regrid above coarsest level
 max_level = 2 # There are (max_level+1) grids, so min is zero
@@ -89,7 +89,7 @@ G_Newton = 1.0
 
 # Scalar field input params read in MatterParams.hpp
 # and used in MatterFunctions.hpp
-thickness = 2
+thickness = 3
 compactness_o_Ro = 0.03125
 Ro = 16
 
