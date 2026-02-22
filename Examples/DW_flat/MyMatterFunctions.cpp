@@ -15,8 +15,7 @@ Real ScalarField::my_potential_function(const Real &phi_here) const
      * Note that lambda is in units of the domain length
     */
     Real phi2_minus_v2 = (phi_here*phi_here - m_matter_params.v*m_matter_params.v);
-    Real L = domainLength[0];
-    Real lambda = m_matter_params.lambda/L/L;
+    Real lambda = m_matter_params.lambda;
 
     return 0.25*lambda*phi2_minus_v2*phi2_minus_v2;
 }
@@ -32,7 +31,7 @@ Real ScalarField::my_phi_function(const RealVect &loc) const
     */
     Real rr = sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
     Real L = domainLength[0];
-    return m_matter_params.v * tanh((1.0/m_matter_params.thickness/L) * (rr/m_matter_params.R_o*L - 1.0));
+    return m_matter_params.v * tanh((1.0/m_matter_params.thickness) * (rr - m_matter_params.Ro*L));
 }
 
 Real ScalarField::my_Pi_function(const RealVect &loc) const

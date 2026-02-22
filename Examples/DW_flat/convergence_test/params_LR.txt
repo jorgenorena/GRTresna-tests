@@ -89,9 +89,9 @@ G_Newton = 1.0
 
 # Scalar field input params read in MatterParams.hpp
 # and used in MatterFunctions.hpp
-thickness = 0.1
-compactness = 0.5
-R_o = 0.25
+thickness = 2
+compactness_o_Ro = 0.03125
+Ro = 0.25
 
 # Conformal factor psi
 # Related to cosmo scale factor a = psi^2
