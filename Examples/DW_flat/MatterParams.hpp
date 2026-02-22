@@ -28,7 +28,7 @@ inline void read_params(GRParmParse &pp, params_t &matter_params)
     pp.get("Ro", matter_params.Ro);
 
     matter_params.v = sqrt((3.0/32.0/M_PI)*compactness_o_Ro*thickness);
-    matter_params.lambda = 2.0/(matter_params.v*matter_params.v)/(matter_params.Ro*matter_params.Ro)/(matter_params.thickness_o_Ro*matter_params.thickness_o_Ro);
+    matter_params.lambda = 2.0/(matter_params.v*matter_params.v)/(matter_params.thickness*matter_params.thickness);
 }
 
 }; // namespace MatterParams
