@@ -31,7 +31,7 @@ Real ScalarField::my_phi_function(const RealVect &loc) const
     */
     Real rr = sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
     Real L = domainLength[0];
-    return m_matter_params.v * tanh((1.0/m_matter_params.thickness) * (rr - m_matter_params.Ro*L));
+    return m_matter_params.v * tanh((1.0/m_matter_params.thickness) * (rr - m_matter_params.Ro));
 }
 
 Real ScalarField::my_Pi_function(const RealVect &loc) const
