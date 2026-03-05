@@ -32,8 +32,8 @@ error_filename = Ham_and_Mom_errors_LR
 
 # 'N' is the number of subdivisions in each direction of a cubic box
 # 'L' is the length of the longest side of the box, dx_coarsest = L/N
-N = 128 128 128
-L = 128
+N = 64 64 64 
+L = 8
 
 # Maximum number of times you can regrid above coarsest level
 max_level = 0 # There are (max_level+1) grids, so min is zero
@@ -89,9 +89,9 @@ G_Newton = 1.0
 
 # Scalar field input params read in MatterParams.hpp
 # and used in MatterFunctions.hpp
-thickness = 8
-compactness_o_Ro = 0.015625
-Ro = 32
+thickness = 0.5
+compactness_o_Ro = 0.0625
+Ro = 4
 
 # Conformal factor psi
 # Related to cosmo scale factor a = psi^2
