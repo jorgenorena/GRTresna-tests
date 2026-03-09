@@ -11,7 +11,7 @@
 # input_filename = Outputs/SourceData_chk000001.3d.hdf5
 
 # Where to put the final hdf5 file
-output_path = Outputs_LR/
+output_path = Outputs_GRTresna/
 output_filename = InitialDataFinal.3d.hdf5
 
 # Path for processor outputs and verbosity
@@ -32,8 +32,8 @@ error_filename = Ham_and_Mom_errors_LR
 
 # 'N' is the number of subdivisions in each direction of a cubic box
 # 'L' is the length of the longest side of the box, dx_coarsest = L/N
-N = 64 64 64 
-L = 8
+N = 128 128 128 
+L = 4
 
 # Maximum number of times you can regrid above coarsest level
 max_level = 0 # There are (max_level+1) grids, so min is zero
@@ -70,7 +70,7 @@ use_compact_Vi_ansatz = 1
 # 0 = extrapolating (by default the quantities in ConstraintVariables.hpp are zeroed at boundaries)
 # 1 = reflective, with parity set as in UserVariables files
 hi_boundary = 0 0 0
-lo_boundary = 0 0 0
+lo_boundary = 1 1 1
 
 # Optionally use extrapolation for the Vi variables. Note that in this 
 # case you should probably set the deactivate_zero_mode param to true
@@ -89,9 +89,9 @@ G_Newton = 1.0
 
 # Scalar field input params read in MatterParams.hpp
 # and used in MatterFunctions.hpp
-thickness = 0.5
-compactness_o_Ro = 0.0625
-Ro = 4
+thickness = 0.25
+compactness_o_Ro = 0.25
+Ro = 2
 
 # Conformal factor psi
 # Related to cosmo scale factor a = psi^2
