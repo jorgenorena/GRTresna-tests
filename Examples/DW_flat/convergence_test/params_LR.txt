@@ -11,7 +11,7 @@
 # input_filename = Outputs/SourceData_chk000001.3d.hdf5
 
 # Where to put the final hdf5 file
-output_path = Outputs_GRTresna/
+output_path = Output_GRTresna_LR/
 output_filename = InitialDataFinal.3d.hdf5
 
 # Path for processor outputs and verbosity
