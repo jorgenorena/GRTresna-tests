@@ -509,9 +509,10 @@ void BoundaryConditions::fill_constant_cell(
     FArrayBox &out_box, const IntVect iv, const Side::LoHiSide a_side,
     const int dir, const std::vector<int> &a_comps, const double a_value) const
 {
-    // assume boundary is a negative reflection of values within the grid
-    // plus a constant. This imposes the value on the boundary face rather than
-    // in the boundary itself. No need for parity here.
+    // Reflect the interior value across the boundary face so that the
+    // face-centered Dirichlet value is a_value:
+    //     a_value = 0.5 * (u_interior + u_ghost)
+    // hence u_ghost = 2 * a_value - u_interior.
     IntVect iv_copy = iv;
 
     /// where to copy the data from - mirror image in domain
@@ -526,7 +527,7 @@ void BoundaryConditions::fill_constant_cell(
     // replace value with a_value
     for (int icomp : a_comps)
     {
-        out_box(iv, icomp) = a_value - out_box(iv_copy, icomp);
+        out_box(iv, icomp) = 2.0 * a_value - out_box(iv_copy, icomp);
     }
 }
 
