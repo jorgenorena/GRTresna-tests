@@ -1,0 +1,9 @@
+N = 32 32 32
+L = 1
+max_level = 0
+block_factor = 8
+max_grid_size = 32
+is_periodic = 0 0 0
+lo_boundary = 1 1 1
+hi_boundary = 0 0 0
+extrapolation_order = 3

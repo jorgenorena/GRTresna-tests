@@ -36,3 +36,6 @@ src_dirs := ../../Source \
 
 # shared code for building example programs
 include $(CHOMBO_HOME)/mk/Make.example
+
+# MatterParams changes alter object layouts; keep all example objects in sync.
+$(objects): MatterParams.hpp MultigridVariables.hpp             ../../Source/Core/BoundaryConditions.hpp

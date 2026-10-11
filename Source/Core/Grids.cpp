@@ -274,11 +274,7 @@ void Grids::fill_ghosts_correct_coarse(
         // this will populate the multigrid boundaries according to the BCs
         // in particular it will fill cells for Aij, and updated K
         solver_boundaries.fill_multigrid_boundaries(
-            Side::Lo, *multigrid_vars[ilev], a_comps,
-            filling_solver_vars); //, Interval(c_K_0, c_A33_0));
-        solver_boundaries.fill_multigrid_boundaries(
-            Side::Hi, *multigrid_vars[ilev], a_comps,
-            filling_solver_vars); //, Interval(c_K_0, c_A33_0));
+            *multigrid_vars[ilev], a_comps, filling_solver_vars);
 
         // To define an exchange copier to cover the outer ghosts
         DisjointBoxLayout grown_grids;

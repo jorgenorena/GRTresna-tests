@@ -14,6 +14,7 @@
 #include "RHSTagging.hpp"
 #include "WriteFile.hpp"
 #include "WriteOutput.H"
+#include <cmath>
 
 template <class method_t, class matter_t>
 GRSolver<method_t, matter_t>::GRSolver(GRParmParse &a_pp)
@@ -118,7 +119,7 @@ int GRSolver<method_t, matter_t>::run()
         grids->update_psi0(multigrid_vars, constraint_vars,
                            params.method_params.deactivate_zero_mode);
 
-        bool filling_solver_vars = true;
+        filling_solver_vars = true;
         grids->fill_ghosts_correct_coarse(multigrid_vars, filling_solver_vars);
 
         // Only write out at requested intervals
@@ -131,12 +132,23 @@ int GRSolver<method_t, matter_t>::run()
         }
     }
 
-    pout() << "Converged!" << endl
+    // K and Aij were computed before the last correction. Refresh them and
+    // the residuals on the actual state that will be written to the restart.
+    grids->fill_ghosts_correct_coarse(multigrid_vars, false);
+    for (int ilev = 0; ilev < numLevels; ++ilev)
+        method->solve_analytic(multigrid_vars[ilev], rhs[ilev],
+                               grids->vectDx[ilev]);
+    grids->fill_ghosts_correct_coarse(multigrid_vars, false);
+    calculate_diagnostics(params.base_params.max_NL_iter);
+
+    pout() << "Completed " << params.base_params.max_NL_iter
+           << " nonlinear iterations; fresh final residuals:" << endl
            << "Ham relative error: " << Ham_error << " %" << endl
            << "Mom relative error: " << Mom_error << " %" << endl;
 
     // Mayday if result not converged (> 100% error)
-    if (Ham_error > 1e2 || Mom_error > 1e2)
+    if (!std::isfinite(Ham_error) || !std::isfinite(Mom_error) ||
+        Ham_error > 1e2 || Mom_error > 1e2)
     {
         MayDay::Error(
             "NL iterations did not converge - may need a better initial guess");
@@ -192,12 +204,14 @@ void GRSolver<method_t, matter_t>::calculate_diagnostics(const int NL_iter)
     Real Mom_abs_norm =
         grids->compute_norm(diagnostic_vars, Interval(c_Mom_abs, c_Mom_abs));
 
-    Ham_error = 100 * Ham_norm / Ham_abs_norm;
-    Mom_error = 100 * Mom_norm / Mom_abs_norm;
+    Ham_error = (Ham_norm == 0.0 && Ham_abs_norm == 0.0)
+                    ? 0.0 : 100 * Ham_norm / Ham_abs_norm;
+    Mom_error = (Mom_norm == 0.0 && Mom_abs_norm == 0.0)
+                    ? 0.0 : 100 * Mom_norm / Mom_abs_norm;
 
-    pout() << "The relative error of Ham before step " << NL_iter << " is "
+    pout() << "The relative error of Ham at nonlinear state " << NL_iter << " is "
            << Ham_error << " %" << endl;
-    pout() << "The relative error of Mom before step " << NL_iter << " is "
+    pout() << "The relative error of Mom at nonlinear state " << NL_iter << " is "
            << Mom_error << " %" << endl;
     writeFile(params.base_params.error_filename, NL_iter, Ham_error, Mom_error);
 }

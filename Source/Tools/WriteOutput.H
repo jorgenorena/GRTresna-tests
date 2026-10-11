@@ -207,10 +207,7 @@ void output_final_data(const Vector<LevelData<FArrayBox> *> &a_multigrid_vars,
                                  a_vectDomains[level], num_ghosts);
 
         // this will populate the grchombo boundaries according to the BCs
-        solver_boundaries.fill_grchombo_boundaries(Side::Lo,
-                                                   *grchombo_vars[level]);
-        solver_boundaries.fill_grchombo_boundaries(Side::Hi,
-                                                   *grchombo_vars[level]);
+        solver_boundaries.fill_grchombo_boundaries(*grchombo_vars[level]);
 
         DisjointBoxLayout grown_grids;
         if (a_params.grid_params.boundary_params.nonperiodic_boundaries_exist)

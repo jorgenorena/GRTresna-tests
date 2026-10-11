@@ -32,7 +32,10 @@ BoundaryConditions::params_t::params_t()
     vars_parity_matter = MatterVariables::vars_parity;
     vars_parity_grchombo = GRChomboVariables::vars_parity;
     vars_parity_constraint = ConstraintVariables::vars_parity;
-    extrapolation_order = 1;
+    // Cubic ghost values have O(dx^4) error, preserving second-order
+    // second derivatives in the exported state at an outer boundary.
+    extrapolation_order = 3;
+    regularised_part_psi = 1.0;
     Vi_extrapolated_at_boundary = false;
 }
 
@@ -105,10 +108,13 @@ void BoundaryConditions::params_t::read_params(GRParmParse &pp)
         set_lo_boundary(loBoundary);
 
     pp.load("Vi_extrapolated_at_boundary", Vi_extrapolated_at_boundary, false);
+    pp.load("regularised_part_psi", regularised_part_psi, 1.0);
 
     if (extrapolating_boundaries_exist)
     {
-        pp.load("extrapolation_order", extrapolation_order, 1);
+        pp.load("extrapolation_order", extrapolation_order, 3);
+        if (extrapolation_order < 0 || extrapolation_order > 3)
+            MayDay::Error("extrapolation_order must be between zero and three.");
     }
     if (nonperiodic_boundaries_exist && !boundary_conditions_written)
     {
@@ -261,7 +267,42 @@ int BoundaryConditions::get_var_parity(int a_comp, int a_dir,
     return vars_parity;
 }
 
-/// fill solution boundary conditions, after NL update
+void BoundaryConditions::fill_multigrid_boundaries(
+    LevelData<FArrayBox> &a_state, const Interval &a_comps,
+    const bool filling_solver_vars)
+{
+    CH_assert(is_defined);
+    FOR(idir)
+    {
+        if (!m_params.is_periodic[idir])
+        {
+            for (SideIterator side; side.ok(); ++side)
+                fill_boundary_cells_dir(
+                    side(), a_state, a_state, idir,
+                    get_boundary_condition(side(), idir), a_comps,
+                    VariableType::multigrid, filling_solver_vars);
+        }
+    }
+}
+
+void BoundaryConditions::fill_grchombo_boundaries(
+    LevelData<FArrayBox> &a_state, const Interval &a_comps)
+{
+    CH_assert(is_defined);
+    FOR(idir)
+    {
+        if (!m_params.is_periodic[idir])
+        {
+            for (SideIterator side; side.ok(); ++side)
+                fill_boundary_cells_dir(
+                    side(), a_state, a_state, idir,
+                    get_boundary_condition(side(), idir), a_comps,
+                    VariableType::grchombo);
+        }
+    }
+}
+
+/// Legacy one-side entry point. Prefer the both-side overload for corners.
 void BoundaryConditions::fill_multigrid_boundaries(
     const Side::LoHiSide a_side, LevelData<FArrayBox> &a_state,
     const Interval &a_comps, const bool filling_solver_vars)
@@ -402,11 +443,14 @@ void BoundaryConditions::fill_boundary_cells_dir(
     std::vector<int> comps_vector;
     comps_vector.resize(a_comps.size());
     std::iota(comps_vector.begin(), comps_vector.end(), a_comps.begin());
-    std::vector<int> psi_comps = {c_psi};
-    std::vector<int> Vi_comps;
-    Interval vector_comps = Interval(c_V1_0, c_U_0);
-    Vi_comps.resize(vector_comps.size());
-    std::iota(Vi_comps.begin(), Vi_comps.end(), vector_comps.begin());
+    const std::vector<int> psi_comps = {c_psi_reg};
+    std::vector<int> selected_Vi;
+    std::vector<int> other_comps;
+    for (int comp : comps_vector)
+    {
+        if (comp > c_U_0) other_comps.push_back(comp);
+        else if (comp >= c_V1_0) selected_Vi.push_back(comp);
+    }
 
     // iterate through the boxes, shared amongst threads
     DataIterator dit = a_out.dataIterator();
@@ -437,20 +481,26 @@ void BoundaryConditions::fill_boundary_cells_dir(
             // simplest case - boundary values are extrapolated
             case EXTRAPOLATING_BC:
             {
-                if (filling_solver_vars)
+                if (var_type == VariableType::multigrid)
                 {
-                    fill_constant_cell(out_box, iv, a_side, dir, psi_comps,
-                                       1.0);
+                    // Refresh derived/matter ghosts without overwriting the
+                    // total-field boundary conditions before elliptic assembly.
+                    fill_extrapolating_cell(out_box, iv, a_side, dir,
+                                            other_comps,
+                                            m_params.extrapolation_order);
+                    if (a_comps.contains(c_psi_reg))
+                        fill_constant_cell(out_box, iv, a_side, dir, psi_comps,
+                                           m_params.regularised_part_psi);
 
                     if (m_params.Vi_extrapolated_at_boundary)
                     {
                         int extrapolation_order = 0;
                         fill_extrapolating_cell(out_box, iv, a_side, dir,
-                                                Vi_comps, extrapolation_order);
+                                                selected_Vi, extrapolation_order);
                     }
                     else
                     {
-                        fill_constant_cell(out_box, iv, a_side, dir, Vi_comps,
+                        fill_constant_cell(out_box, iv, a_side, dir, selected_Vi,
                                            0.0);
                     }
                 }
@@ -490,7 +540,7 @@ void BoundaryConditions::fill_reflective_cell(
     /// where to copy the data from - mirror image in domain
     if (a_side == Side::Lo)
     {
-        iv_copy[dir] = -iv[dir] - 1;
+        iv_copy[dir] = 2 * m_domain_box.smallEnd(dir) - iv[dir] - 1;
     }
     else
     {
@@ -518,7 +568,7 @@ void BoundaryConditions::fill_constant_cell(
     /// where to copy the data from - mirror image in domain
     if (a_side == Side::Lo)
     {
-        iv_copy[dir] = -iv[dir] - 1;
+        iv_copy[dir] = 2 * m_domain_box.smallEnd(dir) - iv[dir] - 1;
     }
     else
     {
@@ -536,81 +586,32 @@ void BoundaryConditions::fill_extrapolating_cell(
     const int dir, const std::vector<int> &extrapolating_comps,
     const int order) const
 {
+    if (extrapolating_comps.empty()) return;
+    CH_assert(order >= 0 && order <= 3);
+    const int inward = (a_side == Side::Hi) ? -1 : 1;
+    const int edge = (a_side == Side::Hi) ? m_domain_box.bigEnd(dir)
+                                         : m_domain_box.smallEnd(dir);
+    const Real t = inward * (iv[dir] - edge);
+    std::array<Real, 4> weights;
+    for (int j = 0; j <= order; ++j)
+    {
+        weights[j] = 1.0;
+        for (int k = 0; k <= order; ++k)
+            if (k != j) weights[j] *= (t - k) / Real(j - k);
+    }
     for (int icomp : extrapolating_comps)
     {
-        // vector of 2 nearest values and radii within the grid
-        std::array<double, 2> value_at_point;
-
-        // how many units are we from domain boundary?
-        int units_from_edge = 0;
-        if (a_side == Side::Hi)
+        Real value = 0.0;
+        for (int j = 0; j <= order; ++j)
         {
-            // how many units are we from domain boundary?
-            units_from_edge = iv[dir] - m_domain_box.bigEnd(dir);
-            // vector of 2 nearest values and radii within the grid
-            for (int i = 0; i < 2; i++)
-            {
-                IntVect iv_tmp = iv;
-                iv_tmp[dir] += -units_from_edge - i;
-                FOR(idir)
-                {
-                    if (iv_tmp[idir] > m_domain_box.bigEnd(idir))
-                    {
-                        iv_tmp[idir] = m_domain_box.bigEnd(idir);
-                    }
-                    else if (iv_tmp[idir] < m_domain_box.smallEnd(idir))
-                    {
-                        iv_tmp[idir] = m_domain_box.smallEnd(idir);
-                    }
-                }
-                value_at_point[i] = out_box(iv_tmp, icomp);
-            }
+            IntVect src = iv;
+            src[dir] = edge + inward * j;
+            CH_assert(out_box.box().contains(src));
+            // Do not clamp transverse coordinates: the direction-ordered
+            // boundary fill has already supplied their parity/extrapolation.
+            value += weights[j] * out_box(src, icomp);
         }
-        else // Lo side
-        {
-            // how many units are we from domain boundary?
-            units_from_edge = -iv[dir] + m_domain_box.smallEnd(dir);
-            // vector of 2 nearest values within the grid
-            for (int i = 0; i < 2; i++)
-            {
-                IntVect iv_tmp = iv;
-                iv_tmp[dir] += units_from_edge + i;
-                FOR(idir)
-                {
-                    if (iv_tmp[idir] > m_domain_box.bigEnd(idir))
-                    {
-                        iv_tmp[idir] = m_domain_box.bigEnd(idir);
-                    }
-                    else if (iv_tmp[idir] < m_domain_box.smallEnd(idir))
-                    {
-                        iv_tmp[idir] = m_domain_box.smallEnd(idir);
-                    }
-                }
-                value_at_point[i] = out_box(iv_tmp, icomp);
-            }
-        }
-
-        // assume some dependence and fit it
-        double analytic_change = 0.0;
-        // comp = const
-        if (order == 0)
-        {
-            analytic_change = 0.0;
-        }
-        // linear comp = B + A*x
-        else if (order == 1)
-        {
-            double A = value_at_point[0] - value_at_point[1];
-            analytic_change = A * units_from_edge;
-        }
-        // other orders not supported yet
-        else
-        {
-            MayDay::Error("Order not supported for boundary extrapolation.");
-        }
-
-        // set the value here to the extrapolated value
-        out_box(iv, icomp) = value_at_point[0] + analytic_change;
+        out_box(iv, icomp) = value;
     }
 }
 

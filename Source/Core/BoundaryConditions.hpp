@@ -55,6 +55,7 @@ class BoundaryConditions
         std::array<int, NUM_GRCHOMBO_VARS> vars_parity_grchombo;
         std::array<int, NUM_CONSTRAINT_VARS> vars_parity_constraint;
         int extrapolation_order;
+        Real regularised_part_psi;
         bool Vi_extrapolated_at_boundary;
         params_t(); // sets the defaults
         void
@@ -100,9 +101,19 @@ class BoundaryConditions
                                    const Interval &a_comps,
                                    const bool filling_solver_vars);
 
+    /// Fill both sides in direction order, so mixed-side corners use
+    /// already-filled transverse ghosts.
+    void fill_multigrid_boundaries(LevelData<FArrayBox> &a_state,
+                                   const Interval &a_comps,
+                                   const bool filling_solver_vars);
+
     /// fill grchombo boundaries - used to fill output ghosts
     void fill_grchombo_boundaries(
         const Side::LoHiSide a_side, LevelData<FArrayBox> &a_state,
+        const Interval &a_comps = Interval(0, NUM_GRCHOMBO_VARS - 1));
+
+    void fill_grchombo_boundaries(
+        LevelData<FArrayBox> &a_state,
         const Interval &a_comps = Interval(0, NUM_GRCHOMBO_VARS - 1));
 
     /// fill constraint box - used to fill output ghosts

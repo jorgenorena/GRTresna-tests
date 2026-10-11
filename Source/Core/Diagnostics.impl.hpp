@@ -173,18 +173,12 @@ void Diagnostics<method_t, matter_t>::normalise_constraints(
             Real Ham_abs = diagnostic_vars_box(iv, c_Ham_abs);
             Real Mom_abs = diagnostic_vars_box(iv, c_Mom_abs);
 
-            diagnostic_vars_box(iv, c_Ham_norm) = abs(Ham / Ham_abs);
-            diagnostic_vars_box(iv, c_Mom_norm) = abs(Mom / Mom_abs);
-
-            // This sets the error norms at the boundary cells to zero
-            IntVect lo = IntVect::Zero;
-            IntVect hi = nCells - IntVect::Unit;
-            if (iv[0] == lo[0] || iv[1] == lo[1] || iv[2] == lo[2] ||
-                iv[0] == hi[0] || iv[1] == hi[1] || iv[2] == hi[2])
-            {
-                diagnostic_vars_box(iv, c_Ham_norm) = 0;
-                diagnostic_vars_box(iv, c_Mom_norm) = 0;
-            }
+            // Keep physical boundary cells visible. Exact vacuum has 0/0;
+            // assign zero only when both numerator and denominator vanish.
+            diagnostic_vars_box(iv, c_Ham_norm) =
+                (Ham == 0.0 && Ham_abs == 0.0) ? 0.0 : abs(Ham / Ham_abs);
+            diagnostic_vars_box(iv, c_Mom_norm) =
+                (Mom == 0.0 && Mom_abs == 0.0) ? 0.0 : abs(Mom / Mom_abs);
         }
     }
 }
